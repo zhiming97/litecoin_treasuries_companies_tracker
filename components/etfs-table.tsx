@@ -1,5 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Button } from "@/components/ui/button"
+import { AlertCircle } from "lucide-react"
+import { ReportIssueDialog } from "./report-issue-dialog"
 import type { Holding } from "./holdings-dashboard"
 import Image from "next/image"
 
@@ -85,6 +88,21 @@ export function ETFsTable({ etfs }: ETFsTableProps) {
               )}
             </TableBody>
           </Table>
+        </div>
+        <div className="mt-4 flex justify-start">
+          <ReportIssueDialog
+            tableType="etfs"
+            trigger={
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-xs text-muted-foreground hover:text-foreground"
+              >
+                <AlertCircle className="h-3.5 w-3.5" />
+                Report Inaccurate Data
+              </Button>
+            }
+          />
         </div>
       </CardContent>
     </Card>
