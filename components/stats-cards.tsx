@@ -50,7 +50,14 @@ export function StatsCards({ companies, etfs }: StatsCardsProps) {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-foreground">{stat.value}</div>
-            <p className="text-xs text-muted-foreground">{stat.description}</p>
+            {stat.title === "Total LTC Holdings" ? (
+              <div className="flex items-baseline justify-between text-xs text-muted-foreground mt-1">
+                <p>{stat.description}</p>
+                <p className="text-[11px]">Total Supply: 84,000,000</p>
+              </div>
+            ) : (
+              <p className="text-xs text-muted-foreground mt-1">{stat.description}</p>
+            )}
           </CardContent>
         </Card>
       ))}
