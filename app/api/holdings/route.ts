@@ -23,6 +23,7 @@ export async function GET() {
       const db = await getDatabase("litecoin_treasuries")
       const treasuaryCompaniesView = db.collection("treasury_companies_view")
       const treasuaryETFCollection = db.collection("exchangetradedfunds")
+      const assetPriceCollection = db.collection("asset_price")
 
 
       // Fetch all documents from treasuary_companies_view (MongoDB view)
@@ -30,11 +31,49 @@ export async function GET() {
       console.log("[v0] Companies from treasuary_companies_view:", companies.length, companies)
       const etfs = await treasuaryETFCollection.find({}).toArray()
 
+      // Fetch the latest Litecoin price from asset_price collection
+      const ltcPriceDoc = await assetPriceCollection
+        .find({ asset: "LTC" })
+        .sort({ updatedAt: -1, lastUpdated: -1, createdAt: -1 })
+        .limit(1)
+        .toArray()
+
+      const latestPrice = ltcPriceDoc[0] ?? null
+      let priceValue: number | null = null
+      if (latestPrice) {
+        const possiblePriceKeys = ["price", "priceUSD", "priceUsd", "usdPrice", "value"]
+        for (const key of possiblePriceKeys) {
+          const value = latestPrice[key as keyof typeof latestPrice]
+          if (typeof value === "number") {
+            priceValue = value
+            break
+          }
+        }
+      }
+
+      const ltcPrice =
+        priceValue !== null
+          ? {
+              value: priceValue,
+              currency:
+                (typeof latestPrice?.currency === "string" && latestPrice.currency) ||
+                (typeof latestPrice?.quoteCurrency === "string" && latestPrice.quoteCurrency) ||
+                "USD",
+              lastUpdated: latestPrice?.updatedAt
+                ? new Date(latestPrice.updatedAt).toISOString()
+                : latestPrice?.lastUpdated
+                  ? new Date(latestPrice.lastUpdated).toISOString()
+                  : latestPrice?._updatedAt
+                    ? new Date(latestPrice._updatedAt).toISOString()
+                    : null,
+            }
+          : null
 
       // Return data from MongoDB
       return NextResponse.json({
         companies: companies,
-        etfs: etfs, 
+        etfs: etfs,
+        ltcPrice,
       })
     } catch (dbError) {
       console.error("[v0] MongoDB connection failed:", dbError)
